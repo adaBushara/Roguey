@@ -8,7 +8,13 @@ public class CellularAutomaton : MonoBehaviour
     public int gridX;
     public int gridY;
     public List<CellularAutomaton> neighbors;
-    
+
+    [HideInInspector]
+    public int birthLimit = 4;
+    [HideInInspector]
+    public int deathLimit = 3;    
+    [HideInInspector]
+    public Dictionary<int, bool> refreshBuff;
 
     public void FindNeighbors()
     {
@@ -17,7 +23,8 @@ public class CellularAutomaton : MonoBehaviour
 
         //neighbors are a max possible total of 8 cells
         //up, down, left, right, + diagonals (l/r/u/d)
-        var automatonList = GameObject.FindObjectOfType<AutomatonSpawner>().automatonList;
+        AutomatonSpawner spawner = GameObject.FindObjectOfType<AutomatonSpawner>();
+        var automatonList = spawner.automatonList;
         for (int i = 0; i < automatonList.Count; i++)
         {
             //up is gridy + 1
@@ -75,20 +82,46 @@ public class CellularAutomaton : MonoBehaviour
                 liveNeighbors++;
             }
         }
-        
-        //die from underpopulation
-        if (liveNeighbors < 2)
+
+        ////die from underpopulation
+        //if (liveNeighbors < 2)
+        //{
+        //    //gameObject.SetActive(false);
+        //    refreshBuff[gameObject.GetInstanceID()] = false;
+        //}
+        ////keep alive
+        //if (liveNeighbors == 2 || liveNeighbors == 3)
+        //{
+        //    //gameObject.SetActive(true);
+        //    refreshBuff[gameObject.GetInstanceID()] = true;
+        //}
+        //if (liveNeighbors > 3)
+        //{
+        //    //gameObject.SetActive(false);
+        //    refreshBuff[gameObject.GetInstanceID()] = false;
+        //}
+
+        if (gameObject.activeSelf)
         {
-            gameObject.SetActive(false);
+            if (liveNeighbors < deathLimit)
+            {
+                refreshBuff[gameObject.GetInstanceID()] = false;
+            }
+            else
+            {
+                refreshBuff[gameObject.GetInstanceID()] = true;
+            }
         }
-        //keep alive
-        if (liveNeighbors == 2 || liveNeighbors == 3)
+        else
         {
-            gameObject.SetActive(true);
-        }
-        if (liveNeighbors > 3)
-        {
-            gameObject.SetActive(false);
+            if (liveNeighbors > birthLimit)
+            {
+                refreshBuff[gameObject.GetInstanceID()] = true;
+            }
+            else
+            {
+                refreshBuff[gameObject.GetInstanceID()] = false;
+            }
         }
 
     }
@@ -96,7 +129,8 @@ public class CellularAutomaton : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        //AutomatonSpawner spawner = GameObject.FindObjectOfType<AutomatonSpawner>();
+        //refreshBuff = spawner.refreshBuff;
     }
 
     // Update is called once per frame

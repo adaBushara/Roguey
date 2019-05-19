@@ -16,24 +16,41 @@ public class AutomatonSpawner : MonoBehaviour
     [SerializeField]
     public List<CellularAutomaton> automatonList;
 
+    [SerializeField]
+    public Dictionary<int, bool> refreshBuff;
+
     bool stepEnabled = false;
+
+    [Range(0.1f,1.0f)]
+    public float startingDensity = 0.1f;
+
+    public int birthLimit = 4;
+    public int deathLimit = 3;
 
     // Start is called before the first frame update
     void Start()
     {
-        SpawnAutomata();   
+        //SpawnAutomata();   
+        refreshBuff = new Dictionary<int, bool>();
+        foreach (CellularAutomaton a in automatonList)
+        {
+            a.gameObject.SetActive(Random.value < startingDensity);
+            a.refreshBuff = refreshBuff;
+            a.birthLimit = birthLimit;
+            a.deathLimit = deathLimit;
+            //refreshBuff[a.gameObject.GetInstanceID()] = a.gameObject.activeSelf;
+            refreshBuff.Add(a.gameObject.GetInstanceID(), a.gameObject.activeSelf);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (stepEnabled)
-        {
-            foreach (CellularAutomaton c in automatonList)
-            {
-                c.step();
-            }
-        }
+        
+        //if (stepEnabled)
+        //{
+        //    Step();
+        //}
     }
 
     public void SpawnAutomata()
@@ -79,8 +96,27 @@ public class AutomatonSpawner : MonoBehaviour
         }
     }
 
-    public void Step()
+    public void ToggleStep()
     {
         stepEnabled = !stepEnabled;
+    }
+
+    public void Step()
+    {
+        foreach (CellularAutomaton c in automatonList)
+        {
+            c.step();
+        }
+
+        UpdateSimulation();
+    }
+
+    public void UpdateSimulation()
+    {
+       //update the simulation, prevents cascade effect
+       foreach (var a in automatonList)
+       {
+            a.gameObject.SetActive(refreshBuff[a.gameObject.GetInstanceID()]);
+       }
     }
 }
